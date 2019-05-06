@@ -21,4 +21,8 @@ Now you can go to localhost:8888 and see your project running.
 
 ### Usage
 
-After including/requiring `/includes/db.php` you can use `$conn = new Connect("YOUR_DB_NAME_HERE");` to connect to any database you want
+After including/requiring `/includes/db.php` you can use:
+```php
+$conn = new Connect("YOUR_DB_NAME_HERE");
+```
+to connect to any database you want
