@@ -1,7 +1,7 @@
 {
-  "name": "Freshprint",
+  "name": "PHPLogin",
   "version": "1.0.0",
-  "description": "An update for Freshprint using Bootstrap 4",
+  "description": "PHP Login script",
   "main": "index.js",
   "scripts": {
     "test": "echo \\\"Error: no test specified\\\" && exit 1"
@@ -10,7 +10,7 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wapbamboogie/bootstrap-4-boilerplate"
+    "url": "https://github.com/Eli-Nathan/PHPLogin"
   },
   "devDependencies": {
     "browser-sync": "^2.26.3",
