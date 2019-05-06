@@ -9,7 +9,10 @@
 
     if (mysqli_num_rows($result) > 0) {
       while($row = mysqli_fetch_assoc($result)) {
-          echo "Name: " . $row["first_name"] . " " . $row["last_name"] . "<br> User type: " . $row["role"] . "<br> <br>";
+        $firstname = $row["first_name"];
+        $lastname = $row["last_name"];
+        $role = $row["role"];
+        echo "Name: $firstname $lastname <br> User type: $role <br> <br>";
       }
     } else {
       echo "0 results";
