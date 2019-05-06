@@ -12,7 +12,13 @@ Simple PHP DB connection script.
 
 On OSX, in the terminal, `cd` into the project.
 Run:
+
 ```shell
-php -S localhost:8888```
+php -S localhost:8888
+```
 
 Now you can go to localhost:8888 and see your project running.
+
+### Usage
+
+After including/requiring `/includes/db.php` you can use `$conn = new Connect("YOUR_DB_NAME_HERE");` to connect to any database you want
