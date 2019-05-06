@@ -1,12 +1,11 @@
-# DBConnect
+# PHP Login
 
-Simple PHP DB connection script.
+Simple PHP login/signup script.
 
 ### Get started
 
 1. Clone the repo.
 2. Create a database in your mysql client. I've called mine `db`.
-3. Run the `/db_schema/example-users.sql` file to get a load of expample users in a table.
 
 ### Run
 
