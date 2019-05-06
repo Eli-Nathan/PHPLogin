@@ -3,7 +3,6 @@
   $conn = new Connect("db");
   $sql = 'SELECT * FROM users';
   $result = mysqli_query($conn->connectMysql(), $sql);
-  $pageTitle = "Home";
 
   include  "_includes/header.php";
 
@@ -11,7 +10,7 @@
     while($row = mysqli_fetch_assoc($result)) {
       $firstname = $row["first_name"];
       $lastname = $row["last_name"];
-      echo "Name tets: $firstname $lastname <br> <br>";
+      echo "Name: $firstname $lastname <br> <br>";
     }
   } else {
     echo "No results found";
