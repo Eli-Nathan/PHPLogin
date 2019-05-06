@@ -12,7 +12,7 @@ Simple PHP login/signup script.
 On OSX, in the terminal, `cd` into the project.
 Run:
 
-```shell
+```console
 php -S localhost:8888
 ```
 
