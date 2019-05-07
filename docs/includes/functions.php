@@ -41,4 +41,15 @@
     }
     mysqli_close($conn->connectMysql()); //Closing the connection to the database
   }
+
+  function showAlert($type, $content) {
+    return "
+      <div class='alert alert-dismissible fade show alert-$type' role='alert'>
+        $content
+        <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
+          <span aria-hidden='true'>&times;</span>
+        </button>
+      </div>
+    ";
+  }
 ?>

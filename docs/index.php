@@ -5,12 +5,13 @@
   include  "includes/header.php";
 
   if($_POST['email'] && $_POST['password']) {
-    if(userExists($_POST['email'])) {
-      echo "User exists";
+    if(!userExists($_POST['email'])) {
+      registerUser($_POST['email'], $_POST['password']);
+      $alert = showAlert('success', 'You have successfully registered!');
     }
 
     else {
-      registerUser($_POST['email'], $_POST['password']);
+      $alert = showAlert('danger', 'An account with that email address already exists!');
     }
   }
 
@@ -25,9 +26,10 @@
       <div class="form ba-1 border border-info bg-white mt-5 p-3 rounded">
         <form action=<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?> method="post">
         <?php
-          if($_POST['email'] && $_POST['password']) { ?>
-            <p>Form submitted</p>
-        <?php } ?>
+          if($_POST['email'] && $_POST['password']) { 
+            echo $alert;
+          }
+        ?>
           <label for="validationCustomEmail">Email</label>
           <div class="input-group">
             <div class="input-group-prepend">
