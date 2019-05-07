@@ -2,18 +2,23 @@
   require "includes/db.php";
   require "includes/functions.php";
   $pageTitle = "Home";
-  include  "includes/header.php";
 
   if($_POST['email'] && $_POST['password']) {
     if(!userExists($_POST['email'])) {
       registerUser($_POST['email'], $_POST['password']);
-      $alert = showAlert('success', 'You have successfully registered!', false);
+      $alert = showAlert('success', 'You have successfully registered! You can now login', false);
     }
-
     else {
-      $alert = showAlert('danger', 'An account with that email address already exists!', true);
+      if(userLogin($_POST['email'], $_POST['password'])) {
+        header('Location: /secure');
+      }
+      else {
+        $alert = showAlert('danger', 'Incorrect password!', true);
+      }
     }
   }
+
+  include  "includes/header.php";
 
 ?>
 

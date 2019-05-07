@@ -40,6 +40,31 @@
     mysqli_close($conn->connectMysql()); //Closing the connection to the database
   }
 
+  function userLogin(&$email, &$password) {
+    $conn = new Connect("users");
+    $find_user = "SELECT email, salt, pword FROM users WHERE email='$email'";
+    $result = mysqli_query($conn->connectMysql(), $find_user) or die('Error while trying to find salt'.mysqli_error());
+    $row = mysqli_fetch_assoc($result);
+
+    /*-------------------------------------------------------------
+    	Getting the value from the database
+    	&  
+    	salting,hashing of the password from the form
+    -------------------------------------------------------------*/
+    $stored_salt = $row['salt'];
+    $stored_hash = $row['pword'];
+    $check_pass = $stored_salt . $password;
+    $check_hash = hash('sha512',$check_pass);
+
+    if($check_hash == $stored_hash) {
+      return true;
+    }
+    else {
+      return false;
+    }
+    mysqli_close($conn->connectMysql()); //Closing the connection to the database
+  }
+
   function showAlert($type, $content, $close) {
     $alert = "
       <div class='alert alert-dismissible fade show alert-$type' role='alert'>
