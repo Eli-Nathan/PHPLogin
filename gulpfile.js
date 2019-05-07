@@ -1,103 +1,139 @@
-"use strict";
-
 var gulp = require('gulp'),
-  concat = require('gulp-concat'),
-  uglify = require('gulp-uglify'),
-  rename = require('gulp-rename'),
+  argv = require('yargs').argv,
+  browserify = require('browserify'),
+  browserSync = require('browser-sync'),
+  babelify = require('babelify'),
+  buffer = require('gulp-buffer'),
+  changed = require('gulp-changed'),
+  cp = require('child_process'),
+  debug = require('gulp-debug'),
+  gulpif = require('gulp-if'),
+  gutil = require('gulp-util'),
+  jekyll = process.platform === 'win32' ? 'jekyll.bat' : 'jekyll',
+  prefix = require('gulp-autoprefixer'),
+  php = require('gulp-connect-php'),
+  reload = browserSync.reload,
+  rename = require("gulp-rename"),
+  runSequence = require('gulp4-run-sequence'),
   sass = require('gulp-sass'),
-  maps = require('gulp-sourcemaps'),
-  del = require('del'),
-  autoprefixer = require('gulp-autoprefixer'),
-  browserSync = require('browser-sync').create(),
-  htmlreplace = require('gulp-html-replace'),
-  cssmin = require('gulp-cssmin'),
-  php = require('gulp-connect-php');
+  sourcemaps = require('gulp-sourcemaps'),
+  tap = require('gulp-tap'),
+  uglify = require('gulp-uglify'),
+  svgmin = require('gulp-svgmin'),
+  imagemin = require('gulp-imagemin');
 
-gulp.task("concatScripts", function() {
-  return gulp.src([
-      'assets/js/vendor/jquery-3.3.1.slim.min.js',
-      'assets/js/vendor/popper.min.js',
-      'assets/js/vendor/bootstrap.min.js',
-      'assets/js/functions.js'
-    ])
-    .pipe(maps.init())
-    .pipe(concat('main.js'))
-    .pipe(maps.write('./'))
-    .pipe(gulp.dest('assets/js'))
-    .pipe(browserSync.stream());
-});
 
-gulp.task("minifyScripts", ["concatScripts"], function() {
-  return gulp.src("assets/js/main.js")
-    .pipe(uglify())
-    .pipe(rename('main.min.js'))
-    .pipe(gulp.dest('dist/assets/js'));
-});
-
-gulp.task('compileSass', function() {
-  return gulp.src("assets/css/main.scss")
-    .pipe(maps.init())
-    .pipe(sass().on('error', sass.logError))
-    .pipe(autoprefixer())
-    .pipe(maps.write('./'))
-    .pipe(gulp.dest('assets/css'))
-    .pipe(browserSync.stream());
-});
-
-gulp.task("minifyCss", ["compileSass"], function() {
-  return gulp.src("assets/css/main.css")
-    .pipe(cssmin())
-    .pipe(rename('main.min.css'))
-    .pipe(gulp.dest('dist/assets/css'));
+gulp.task('jekyll-build', function(done) {
+  return cp.spawn('bundle', ['exec', 'jekyll', 'build', '--watch', '--incremental'], {
+      stdio: 'inherit'
+    })
+    .on('close', done);
 });
 
 gulp.task('php', function(){
-  php.server({base:'./', port:8888, keepalive:true,});
+  php.server({base:'./docs', port:8888, keepalive:true,});
 });
 
-gulp.task('watchFiles', function() {
-  gulp.watch('assets/css/**/*.scss', ['compileSass']);
-  gulp.watch('assets/js/*.js', ['concatScripts']);
-})
 
-gulp.task('clean', function() {
-  del(['dist', 'assets/css/main.css*', 'assets/js/main*.js*']);
-});
-
-gulp.task('renameSources', function() {
-  return gulp.src(['*.html', '**/*.php', '!dist', '!dist/**'])
-    .pipe(htmlreplace({
-      'js': 'assets/js/main.min.js',
-      'css': 'assets/css/main.min.css'
-    }))
-    .pipe(gulp.dest('dist/'));
-});
-
-gulp.task("build", ['minifyScripts', 'minifyCss'], function() {
-  return gulp.src([
-      '*.html',
-      '*.php',
-      'favicon.ico',
-      "assets/img/**"
-    ], {
-      base: './'
-    })
-    .pipe(gulp.dest('dist'));
-});
-
-gulp.task('serve', ['watchFiles', 'php'], function() {
+gulp.task('dev-server', function () {
   browserSync.init({
     logPrefix: "󠁧󠁢󠁳󠁣󠁴⚡️",
     proxy: "http://localhost:8888",
     baseDir: "./",
     open:true,
-    notify:false
+    notify: false
+  });
 });
 
-  gulp.watch("assets/css/**/*.scss", ['watchFiles']);
+gulp.task('share', function() {
+  return browserSync.init({
+    server: {
+      baseDir: "docs"
+    },
+    ghostMode: false
+  });
+});
+
+gulp.task('javascripts', function() {
+  return gulp.src(['./_scripts/**/*.js'])
+    .pipe(gulpif(!argv.force, changed('./assets/scripts', {
+      extension: '.js'
+    })))
+    .pipe(
+      tap(function(file) {
+        file.contents = browserify(file.path, {
+          debug: true,
+          paths: ["./node_modules", "./assets/_scripts"]
+        })
+        .transform(babelify, {
+          presets: ["@babel/preset-env", "@babel/preset-react"]
+        })
+        .bundle()
+        .on("error", function(err) {
+          console.log(err);
+          this.emit("end");
+        });
+      })
+    )
+    .pipe(buffer())
+    .pipe(sourcemaps.init({
+        loadMaps: true
+    }))
+    // .pipe(sourcemaps.write('./'))
+    .pipe(gulp.dest('./assets/scripts'))
+    .pipe(gulp.dest('./docs/assets/scripts'))
+    .pipe(reload({ stream: true }));
+});
+
+
+gulp.task('stylesheets', function() {
+  return gulp.src(['./_scss/**/*.scss', './node_modules/bootstrap/scss/bootstrap.scss'])
+    // .pipe(gulpif(!argv.force, changed('./assets/css', {
+    //     extension: '.css'
+    // })))
+    .pipe(sass({
+      outputStyle: 'compressed',
+      includePaths: [
+        './_scss/',
+        './node_modules/bootstrap/scss/bootstrap.scss'
+      ]
+    })).on('error', function(err) {
+      browserSync.notify(err.message, 10000);
+      console.log(err);
+      this.emit('end');
+    })
+    .pipe(prefix(['last 15 versions', '> 5%'], {
+      cascade: true
+    }))
+    .pipe(debug({
+      title: 'SCSS Compiled:'
+    }))
+    .pipe(gulp.dest('./assets/css'))
+    .pipe(reload({ stream: true }));
+});
+
+gulp.task('optimize_images', function() {
+  return gulp.src('./assets/assets/images/**/*.{jpg, bmp, gif, png, jpeg, svg}')
+    .pipe(imagemin())
+    .pipe(debug({
+      title: 'Crunched:'
+    }))
+    .pipe(gulp.dest('./assets/images'))
+    .pipe(reload({ stream: true }));
+});
+
+gulp.task('watch', function() {
+  gulp.watch('./_scss/**/*.scss', gulp.series('stylesheets'));
+  gulp.watch('./node_modules/bootstrap/scss/bootstrap.scss', gulp.series('stylesheets'));
+  gulp.watch('./_scripts/**/*.js', gulp.series('javascripts'));
   gulp.watch(['**/*.html', '**/*.php']).on('change', browserSync.reload);
+  gulp.watch(['./docs/**/*']).on("change", reload);
 });
 
-gulp.task("default", ["clean", 'build'], function() {
-  gulp.start('renameSources');
+gulp.task('server', function(callback) {
+  runSequence(['jekyll-build', 'dev-server', 'watch', 'php'], callback);
+});
+
+gulp.task('default', function() {
+  console.log("try running 'gulp server'...");
 });
