@@ -6,15 +6,26 @@
   if(isset($_POST['email']) && isset($_POST['password'])) {
     $auth = new Authenticate();
     if(!$auth->userExists($_POST['email'])) {
-      $auth->registerUser($_POST['email'], $_POST['password']);
-      $alert = showAlert('success', 'You have successfully registered! You can now login', false);
+      if($auth->registerUser($_POST['email'], $_POST['password'])) {
+        $alert = showAlert('success', 'You have successfully registered! You can now login', false);
+      }
+      else {
+        $alert = showAlert('danger', 'Something went wrong! Please try again later', true);
+      }
     }
     else {
       if($auth->userLogin($_POST['email'], $_POST['password'])) {
         header('Location: /secure');
       }
       else {
-        $alert = showAlert('danger', 'Incorrect password!', true);
+        $num_attempts = $auth->checkRemaining($_POST['email']);
+        if($num_attempts > 4) {
+          $alert = showAlert('danger', "You have entered an incorrect password too many times. Please try again in 10 minutes", false);
+        }
+        else {
+          $auth->addAttempt($_POST['email']);
+          $alert = showAlert('danger', "Incorrect password", false);
+        }
       }
     }
   }
@@ -41,7 +52,7 @@
             <div class="input-group-prepend">
               <span class="input-group-text" id="email-icon"><i class="fa fa-envelope"></i></span>
             </div>
-            <input type="email" class="form-control" name="email" id="email" placeholder="Email" aria-describedby="email-icon" required>
+            <input type="email" class="form-control" name="email" id="email" placeholder="Email" aria-describedby="email-icon" <?php if(isset($_POST['email'])) {?> value="<?php echo $_POST['email']; ?>" <?php } ?> required>
             <div class="invalid-feedback">
               Please enter your email.
             </div>
