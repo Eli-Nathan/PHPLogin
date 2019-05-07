@@ -7,11 +7,11 @@
   if($_POST['email'] && $_POST['password']) {
     if(!userExists($_POST['email'])) {
       registerUser($_POST['email'], $_POST['password']);
-      $alert = showAlert('success', 'You have successfully registered!');
+      $alert = showAlert('success', 'You have successfully registered!', false);
     }
 
     else {
-      $alert = showAlert('danger', 'An account with that email address already exists!');
+      $alert = showAlert('danger', 'An account with that email address already exists!', true);
     }
   }
 

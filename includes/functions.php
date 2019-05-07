@@ -34,22 +34,25 @@
 
     $result = mysqli_query($conn->connectMysql(), $insert);
 
-    if($result) {
-      echo "Successful";
-    } else {
+    if(!$result) {
       echo "Could not register user: " . mysql_error();
     }
     mysqli_close($conn->connectMysql()); //Closing the connection to the database
   }
 
-  function showAlert($type, $content) {
-    return "
+  function showAlert($type, $content, $close) {
+    $alert = "
       <div class='alert alert-dismissible fade show alert-$type' role='alert'>
         $content
+      ";
+    if($close) {
+      $alert .= "
         <button type='button' class='close' data-dismiss='alert' aria-label='Close'>
           <span aria-hidden='true'>&times;</span>
         </button>
-      </div>
-    ";
+      ";
+    }
+    $alert .= "</div>";
+    return $alert;
   }
 ?>
