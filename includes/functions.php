@@ -1,4 +1,7 @@
 <?php
+ini_set( 'display_errors', 1 );
+error_reporting( E_ALL );
+
   Class Authenticate {
     // Generate salt for passwords
     function generateSalt($max = 64) {
@@ -94,6 +97,24 @@
       $insert = "INSERT INTO login_attempts(userid) VALUES ($id)";
       if(mysqli_query($conn->connectMysql(), $insert)) {
         return true;
+      }
+      mysqli_close($conn->connectMysql()); //Closing the connection to the database
+    }
+
+    function sendRecovery(&$email) {
+      $conn = new Connect("users");
+      $id = $this->getUserId($email);
+      $string =  substr(md5(rand()), 0, 100);
+      $insert = "UPDATE users SET pass_recover = '$string', pass_recover_exp = DATE_ADD(NOW(), INTERVAL 1 DAY) WHERE id = $id";
+      if(mysqli_query($conn->connectMysql(), $insert)) {
+        $from = "ely.nathan93@gmail.com";
+        $to = $email;
+        $subject = "Reset your password";
+        $message = "You have submitted the forgotten password script. Please follow <a href='http://localhost:3000/forgot-password/reset/?email=$email&token=$string'>this link</a> to reset your password.";
+        $headers = "MIME-Version: 1.0" . "\r\n";
+        $headers .= 'Content-type: text/html; charset=utf-8' . "\r\n";
+        $headers .= "From:" . $from . "\r\n";
+        return mail($to,$subject,$message, $headers);
       }
       mysqli_close($conn->connectMysql()); //Closing the connection to the database
     }

@@ -14,18 +14,25 @@
       }
     }
     else {
-      if($auth->userLogin($_POST['email'], $_POST['password'])) {
-        header('Location: /secure');
-      }
-      else {
-        $num_attempts = $auth->checkRemaining($_POST['email']);
-        if($num_attempts > 4) {
-          $alert = showAlert('danger', "You have entered an incorrect password too many times. Please try again in 10 minutes", false);
+      $num_attempts = $auth->checkRemaining($_POST['email']);
+      if($num_attempts < 4) {
+        if($auth->userLogin($_POST['email'], $_POST['password'])) {
+          session_start();
+          $_SESSION["id"] = $auth->getUserId($_POST['email']);
+          header('Location: /secure');
         }
         else {
-          $auth->addAttempt($_POST['email']);
-          $alert = showAlert('danger', "Incorrect password", false);
+          if($num_attempts > 4) {
+            $alert = showAlert('danger', "You have entered an incorrect password too many times. Please try again in 15 minutes", false);
+          }
+          else {
+            $auth->addAttempt($_POST['email']);
+            $alert = showAlert('danger', "Incorrect password", false);
+          }
         }
+      }
+      else {
+        $alert = showAlert('danger', "You have entered an incorrect password too many times. Please try again in 15 minutes", false);
       }
     }
   }
@@ -71,7 +78,7 @@
 
           <button class="btn btn-success mt-3 btn-block" type="submit">Submit</button>
         </form>
-        <a href="#" class="d-block mt-3 text-right">Forgot your password?</a>
+        <a href="/forgot-password" class="d-block mt-3 text-right">Forgot your password?</a>
       </div>
     </div>
   </div>
